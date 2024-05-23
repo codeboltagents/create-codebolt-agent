@@ -1,0 +1,10 @@
+{
+  "name": "create-codebolt-agent",
+  "version": "1.0.0",
+  "bin": {
+    "create-codebolt-agent": "./index.js"
+  },
+  "dependencies": {
+    "cross-spawn": "^7.0.3"
+  }
+}
