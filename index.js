@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { Command } = require('commander');
 const inquirer = require('inquirer');
+const yaml = require('js-yaml');
 
 const program = new Command();
 program.option('-n, --name <name>', 'name of the project');
@@ -38,15 +39,21 @@ inquirer.prompt([
     name: 'template',
     message: 'Please select a template for your application:',
     choices: templates
-  }
+  },
+  {
+    type: 'input',
+    name: 'agentDescription',
+    message: 'Please enter a description for your agent:',
+    default: 'My Codebolt Agent'
+  },
 ]).then(answers => {
   projectName = answers.projectName.trim();
   const installPath = answers.installPath.trim() === '.' ? process.cwd() : path.resolve(process.cwd(), answers.installPath.trim());
   const selectedTemplate = answers.template;
-  createProject(projectName, installPath, selectedTemplate);
+  createProject(projectName, installPath, selectedTemplate, answers.agentDescription);
 });
 
-function createProject(projectName, installPath, selectedTemplate) {
+function createProject(projectName, installPath, selectedTemplate, description) {
   // Create a project directory with the project name.
   const projectDir = path.resolve(installPath);
   fs.mkdirSync(projectDir, { recursive: true });
@@ -65,6 +72,16 @@ function createProject(projectName, installPath, selectedTemplate) {
     path.join(projectDir, '.gitignore')
   );
 
+  const agentYamlPath = path.join(projectDir, 'codeboltagent.yaml');
+  let agentYaml = fs.readFileSync(agentYamlPath, 'utf8');
+  
+  let agentYamlObj = yaml.load(agentYaml);
+  agentYamlObj.name = projectName;
+  agentYamlObj.description = description;
+  
+  agentYaml = yaml.dump(agentYamlObj);
+  fs.writeFileSync(agentYamlPath, agentYaml, 'utf8');
+
   const projectPackageJson = require(path.join(projectDir, 'package.json'));
 
   // Update the project's package.json with the new project name
@@ -79,7 +96,9 @@ function createProject(projectName, installPath, selectedTemplate) {
   // the dependencies. We are using a third-party library
   // called `cross-spawn` for cross-platform support.
   // (Node has issues spawning child processes in Windows).
-  spawn.sync('npm', ['install'], { stdio: 'inherit' });
+  spawn.sync('npm', ['install'], { stdio: 'inherit', cwd: installPath });
+
+  spawn.sync('git', ['init'], { stdio: 'inherit', cwd: installPath });
 
   console.log('Success! Your new project is ready.');
   console.log(`Created ${projectName} at ${projectDir}`);

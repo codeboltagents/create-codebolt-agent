@@ -1,12 +1,11 @@
-import { codebolt } from '@codebolt/codeboltjs';
+const codebolt = require('@codebolt/codeboltjs').default;
 
-// Function to execute codebolt connection
 async function execute() {
-
     await codebolt.waitForConnection();
+
+    // Enter your Code Here. For documentation see: https://docs.codebolt.ai
+    // Example:
+
 }
 
-// Immediately invoked function expression to execute the code
-(async () => {
-    await execute();
-})();
+(async () => { await execute(); })();
