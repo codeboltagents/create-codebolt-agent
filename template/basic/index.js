@@ -1,8 +1,9 @@
 const codebolt = require('@codebolt/codeboltjs').default;
 
-async function execute() {
+codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+
     await codebolt.waitForConnection();
+ 
+})
 
-}
 
-(async () => { await execute(); })();
