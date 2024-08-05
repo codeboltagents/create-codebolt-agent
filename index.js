@@ -283,8 +283,6 @@ inquirer.prompt(prompts).then(answers => {
 });
 
 function createProject(projectName, installPath, selectedTemplate, answers) {
-  // Create a project directory with the project name.
-
   
   const projectDir = path.resolve(installPath);
   fs.mkdirSync(projectDir, { recursive: true });
@@ -301,9 +299,6 @@ function createProject(projectName, installPath, selectedTemplate, answers) {
   const agentYamlPath = path.join(projectDir, 'codeboltagent.yaml');
   let agentYaml = fs.readFileSync(agentYamlPath, 'utf8');
   
-  // sdlcNamecodegeneration:
-  // example_instructionscodegeneration:
-
   let agentYamlObj = yaml.load(agentYaml);
   agentYamlObj.title = projectName;
   agentYamlObj.description = answers.agentDescription;
@@ -316,15 +311,18 @@ function createProject(projectName, installPath, selectedTemplate, answers) {
     supportedlanguages: answers.supportedlanguages,
     supportedframeworks: answers.supportedframeworks,
   };
+
   agentYamlObj.metadata.sdlc_steps_managed = metadata.sdlc_steps_managed.map(step => ({
     name: answers[`sdlcName${step.name}`],
     example_instructions: answers[`example_instructions${step.name}`],
   }));
+
   agentYamlObj.metadata.llm_role = metadata.llm_role.map(role => ({
     name: role.name,
     description: role.description,
     modelorder: answers[role.name],
   }));
+
   agentYamlObj.actions = metadata.actions.map(action => ({
     name: answers[`name${action.name}`],
     description: answers[`description${action.name}`],
@@ -332,8 +330,6 @@ function createProject(projectName, installPath, selectedTemplate, answers) {
     actionPrompt: answers[`actionPrompt${action.name}`],
   }));
   
-  console.log(agentYamlObj)
-  return
   agentYaml = yaml.dump(agentYamlObj);
 
   fs.writeFileSync(agentYamlPath, agentYaml, 'utf8');
