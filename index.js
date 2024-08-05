@@ -213,23 +213,7 @@ if (metadata.agent_routing) {
   });
 }
 
-if (metadata.sdlc_steps_managed) {
-  metadata.sdlc_steps_managed.forEach(step => {
-    prompts.push({
-      type: 'input',
-      name: `sdlcName${step.name}`,
-      message: 'Please Enter Instruction Name :',
-      default: step.name,
-    });
-    
-    prompts.push({
-      type: 'list',
-      name: `example_instructions${step.name}`,
-      message: 'Please select Example Instruction:',
-      choices: step.example_instructions,
-    });
-  });
-}
+
 
 if (metadata.llm_role) {
   metadata.llm_role.forEach(role => {
@@ -242,41 +226,83 @@ if (metadata.llm_role) {
   });
 }
 
-if (metadata.actions) {
-  metadata.actions.forEach(action => {
-    prompts.push({
-      type: 'input',
-      name: `name${action.name}`,
-      message: 'Please Enter Action Name',
-      default: action.name,
-    });
-    prompts.push({
-      type: 'input',
-      name: `description${action.name}`,
-      message: `Please Enter action description:`,
-      default: action.description,
-    });
-    if (action?.detailDescription) {
-      prompts.push({
+async function askForActions(res) {
+  let addMoreActions = true;
+  while (addMoreActions) {
+    const actionPrompt = [
+      {
         type: 'input',
-        name: `detailDescription${action.name}`,
-        message: `Please Enter detail Description:`,
-        default: action.detailDescription,
-      });
-    }
-    if (action?.actionPrompt) {
-      prompts.push({
+        name: 'actionName',
+        message: 'Please Enter Action Name:',
+      },
+      {
         type: 'input',
-        name: `actionPrompt${action.name}`,
-        message: `Please Enter actionPrompt:`,
-        default: action.actionPrompt,
-      });
-    }
-  });
+        name: 'actionDescription',
+        message: 'Please Enter Action Description:',
+      },
+      {
+        type: 'input',
+        name: 'detailDescription',
+        message: 'Please Enter Detail Description (optional):',
+      },
+      {
+        type: 'input',
+        name: 'actionPrompt',
+        message: 'Please Enter Action Prompt (optional):',
+      },
+      {
+        type: 'confirm',
+        name: 'addMoreActions',
+        message: 'Do you want to add more actions?',
+        default: false,
+      }
+    ];
+
+    const actionRes = await inquirer.prompt(actionPrompt);
+    res.push({
+      name: actionRes.actionName,
+      description: actionRes.actionDescription,
+      detailDescription: actionRes.detailDescription,
+      actionPrompt: actionRes.actionPrompt,
+    });
+    addMoreActions = actionRes.addMoreActions;
+  }
+  return res;
 }
 
+async function askForInstructions(res) {
+  let addMoreInstructions = true;
+  while (addMoreInstructions) {
+    const additionalPrompt = [
+      {
+        type: 'choices',
+        name: 'InstructionName',
+        message: 'Please Enter SDLC Step Name:',
+      },
+      {
+        type: 'input',
+        name: 'InstructionDescription',
+        message: 'Please Enter Instruction Description:',
+      },
+      {
+        type: 'confirm',
+        name: 'addMoreInstructions',
+        message: 'Do you want to add more instructions?',
+        default: false,
+      }
+    ];
+
+    const additionalRes = await inquirer.prompt(additionalPrompt);
+    res[`sdlcName${additionalRes.InstructionName}`] = additionalRes.InstructionName;
+    res[`sdlcDescription${additionalRes.InstructionName}`] = additionalRes.InstructionDescription;
+    addMoreInstructions = additionalRes.addMoreInstructions;
+  }
+  return res;
+}
 
 inquirer.prompt(prompts).then(answers => {
+  let res = [];
+  let instructions = askForInstructions(res)
   projectName = answers.projectName.trim();
   const installPath = answers.installPath.trim() === '.' ? process.cwd() : path.resolve(process.cwd(), answers.installPath.trim());
   const selectedTemplate = answers.template;
