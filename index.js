@@ -24,117 +24,118 @@ const templates = fs.readdirSync(templateDir).filter(file => fs.statSync(path.jo
 
 
 // Sample metadata object
-const metadata = {
-  tags:['basic-agent'],
-  agent_routing: {
-    worksonblankcode: true,
-    worksonexistingcode: true,
-    softwaredevprocessmanaged: [
-      'projectplanning',
-      'codegeneration',
-      'codetesting',
-      'codeoptimization',
-    ],
-    supportedlanguages: [
-      'all',
-      'javascript',
-      'typescript',
-      'python',
-      'go',
-      'ruby',
-    ],
-    supportedframeworks: [
-      'all',
-      'nextjs',
-      'reactjs',
-      'nodejs',
-      'express',
-      'django',
-    ],
-  },
-  defaultagentllm: {
-    strict: true,
-    modelorder: ['ollama2'],
-  },
-  sdlc_steps_managed: [
-    {
-      name: 'codegeneration',
-      example_instructions: [
-        'Generate a new React component',
-        'Create a new API endpoint',
-      ],
-    },
-    {
-      name: 'deployment',
-      example_instructions: [
-        'deploy this file to cloudflare',
-        'deploy this file to firebase',
-      ],
-    },
-  ],
-  llm_role: [
-    {
-      name: 'documentationllm',
-      description: 'LLM to be used for advanced Documentation. Please select a model that excels in documentation tasks.',
-      strict: true,
-      modelorder: [
-        'gpt-4-turbo',
-        'gpt-3.5-turbo',
-        'mistral7b.perplexity',
-        'mistral7b.any',
-        'llama2-70b',
-        'llama2-15b',
-        'group.documentationmodels',
-      ],
-    },
-    {
-      name: 'testingllm',
-      description: 'LLM to be used for advanced Testing. Please select a model that excels in testing tasks.',
-      strict: true,
-      modelorder: [
-        'gpt-4-turbo',
-        'gpt-3.5-turbo',
-        'mistral7b.perplexity',
-        'mistral7b.any',
-        'llama2-70b',
-        'llama2-15b',
-        'group.testingmodels',
-      ],
-    },
-    {
-      name: 'actionllm',
-      description: 'LLM to be used for executing advanced actions.',
-      strict: true,
-      modelorder: [
-        'gpt-4-turbo',
-        'gpt-3.5-turbo',
-        'mistral7b.perplexity',
-        'mistral7b.any',
-        'llama2-70b',
-        'llama2-15b',
-        'group.actionmodels',
-      ],
-    },
-  ],
-  actions: [
-    {
-      name: 'Execute',
-      description: 'Executes the given task.',
-      detailDescription: 'more detailed description',
-      actionPrompt: 'Please run this code',
-    },
-    {
-      name: 'Debug',
-      description: 'Debugs the code.',
-      actionPrompt: 'Please debug this code',
-    },
-  ],
-};
+// const metadata = {
+//   tags:['basic-agent'],
+//   agent_routing: {
+//     worksonblankcode: true,
+//     worksonexistingcode: true,
+//     softwaredevprocessmanaged: [
+//       'projectplanning',
+//       'codegeneration',
+//       'codetesting',
+//       'codeoptimization',
+//     ],
+//     supportedlanguages: [
+//       'all',
+//       'javascript',
+//       'typescript',
+//       'python',
+//       'go',
+//       'ruby',
+//     ],
+//     supportedframeworks: [
+//       'all',
+//       'nextjs',
+//       'reactjs',
+//       'nodejs',
+//       'express',
+//       'django',
+//     ],
+//   },
+//   defaultagentllm: {
+//     strict: true,
+//     modelorder: ['ollama2'],
+//   },
+//   sdlc_steps_managed: [
+//     {
+//       name: 'codegeneration',
+//       example_instructions: [
+//         'Generate a new React component',
+//         'Create a new API endpoint',
+//       ],
+//     },
+//     {
+//       name: 'deployment',
+//       example_instructions: [
+//         'deploy this file to cloudflare',
+//         'deploy this file to firebase',
+//       ],
+//     },
+//   ],
+//   llm_role: [
+//     {
+//       name: 'documentationllm',
+//       description: 'LLM to be used for advanced Documentation. Please select a model that excels in documentation tasks.',
+//       strict: true,
+//       modelorder: [
+//         'gpt-4-turbo',
+//         'gpt-3.5-turbo',
+//         'mistral7b.perplexity',
+//         'mistral7b.any',
+//         'llama2-70b',
+//         'llama2-15b',
+//         'group.documentationmodels',
+//       ],
+//     },
+//     {
+//       name: 'testingllm',
+//       description: 'LLM to be used for advanced Testing. Please select a model that excels in testing tasks.',
+//       strict: true,
+//       modelorder: [
+//         'gpt-4-turbo',
+//         'gpt-3.5-turbo',
+//         'mistral7b.perplexity',
+//         'mistral7b.any',
+//         'llama2-70b',
+//         'llama2-15b',
+//         'group.testingmodels',
+//       ],
+//     },
+//     {
+//       name: 'actionllm',
+//       description: 'LLM to be used for executing advanced actions.',
+//       strict: true,
+//       modelorder: [
+//         'gpt-4-turbo',
+//         'gpt-3.5-turbo',
+//         'mistral7b.perplexity',
+//         'mistral7b.any',
+//         'llama2-70b',
+//         'llama2-15b',
+//         'group.actionmodels',
+//       ],
+//     },
+//   ],
+//   actions: [
+//     {
+//       name: 'Execute',
+//       description: 'Executes the given task.',
+//       detailDescription: 'more detailed description',
+//       actionPrompt: 'Please run this code',
+//     },
+//     {
+//       name: 'Debug',
+//       description: 'Debugs the code.',
+//       actionPrompt: 'Please debug this code',
+//     },
+//   ],
+// };
 let agent_routing = []
 let defaultagentllm = []
 let sdlc_steps_managed = []
 let llm_role = []
 let actions = []
+const currentPath = process.cwd(); // Gets the current working directory
 
 const prompts = [
   {
@@ -152,7 +153,7 @@ const prompts = [
     type: 'input',
     name: 'installPath',
     message: 'Please enter the path to install the application:',
-    default: projectName,
+    default: (answers) => path.join(currentPath, answers.projectName || 'defaultProjectName'),
   },
   {
     type: 'list',
