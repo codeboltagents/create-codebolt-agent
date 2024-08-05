@@ -21,8 +21,11 @@ projectName = options.name || process.argv[2];
 const templateDir = path.resolve(__dirname, 'template');
 const templates = fs.readdirSync(templateDir).filter(file => fs.statSync(path.join(templateDir, file)).isDirectory());
 
+
+
 // Sample metadata object
 const metadata = {
+  tags:['basic-agent'],
   agent_routing: {
     worksonblankcode: true,
     worksonexistingcode: true,
@@ -127,6 +130,11 @@ const metadata = {
     },
   ],
 };
+let agent_routing = []
+let defaultagentllm = []
+let sdlc_steps_managed = []
+let llm_role = []
+let actions = []
 
 const prompts = [
   {
@@ -134,6 +142,11 @@ const prompts = [
     name: 'projectName',
     message: 'Please enter the name of your application:',
     default: projectName,
+  },
+  {
+    type: 'input',
+    name: 'unique_id',
+    message: 'Please enter the name of your Unique_id:',
   },
   {
     type: 'input',
@@ -152,6 +165,12 @@ const prompts = [
     name: 'agentDescription',
     message: 'Please enter a description for your agent:',
     default: 'My Codebolt Agent',
+  },
+  {
+    type: 'list',
+    name: 'tags',
+    message: 'Please select tags:',
+    choices: metadata.tags,
   },
 ];
 
@@ -172,21 +191,21 @@ if (metadata.agent_routing) {
   });
 
   prompts.push({
-    type: 'checkbox',
+    type: 'list',
     name: 'softwaredevprocessmanaged',
     message: 'Managed Software Development Processes:',
     choices: metadata.agent_routing.softwaredevprocessmanaged,
   });
 
   prompts.push({
-    type: 'checkbox',
+    type: 'list',
     name: 'supportedlanguages',
     message: 'Supported Languages:',
     choices: metadata.agent_routing.supportedlanguages,
   });
 
   prompts.push({
-    type: 'checkbox',
+    type: 'list',
     name: 'supportedframeworks',
     message: 'Supported Frameworks:',
     choices: metadata.agent_routing.supportedframeworks,
@@ -196,9 +215,16 @@ if (metadata.agent_routing) {
 if (metadata.sdlc_steps_managed) {
   metadata.sdlc_steps_managed.forEach(step => {
     prompts.push({
-      type: 'checkbox',
-      name: `${step.name}Instructions`,
-      message: `Example Instructions for ${step.name}:`,
+      type: 'input',
+      name: `sdlcName${step.name}`,
+      message: 'Please Enter Instruction Name :',
+      default: step.name,
+    });
+    
+    prompts.push({
+      type: 'list',
+      name: `example_instructions${step.name}`,
+      message: 'Please select Example Instruction:',
       choices: step.example_instructions,
     });
   });
@@ -207,7 +233,7 @@ if (metadata.sdlc_steps_managed) {
 if (metadata.llm_role) {
   metadata.llm_role.forEach(role => {
     prompts.push({
-      type: 'checkbox',
+      type: 'list',
       name: role.name,
       message: role.description,
       choices: role.modelorder,
@@ -219,12 +245,35 @@ if (metadata.actions) {
   metadata.actions.forEach(action => {
     prompts.push({
       type: 'input',
-      name: `${action.name}ActionPrompt`,
-      message: `${action.name} action prompt:`,
-      default: action.actionPrompt,
+      name: `name${action.name}`,
+      message: 'Please Enter Action Name',
+      default: action.name,
     });
+    prompts.push({
+      type: 'input',
+      name: `description${action.name}`,
+      message: `Please Enter action description:`,
+      default: action.description,
+    });
+    if (action?.detailDescription) {
+      prompts.push({
+        type: 'input',
+        name: `detailDescription${action.name}`,
+        message: `Please Enter detail Description:`,
+        default: action.detailDescription,
+      });
+    }
+    if (action?.actionPrompt) {
+      prompts.push({
+        type: 'input',
+        name: `actionPrompt${action.name}`,
+        message: `Please Enter actionPrompt:`,
+        default: action.actionPrompt,
+      });
+    }
   });
 }
+
 
 inquirer.prompt(prompts).then(answers => {
   projectName = answers.projectName.trim();
@@ -235,6 +284,8 @@ inquirer.prompt(prompts).then(answers => {
 
 function createProject(projectName, installPath, selectedTemplate, answers) {
   // Create a project directory with the project name.
+
+  
   const projectDir = path.resolve(installPath);
   fs.mkdirSync(projectDir, { recursive: true });
 
@@ -250,33 +301,41 @@ function createProject(projectName, installPath, selectedTemplate, answers) {
   const agentYamlPath = path.join(projectDir, 'codeboltagent.yaml');
   let agentYaml = fs.readFileSync(agentYamlPath, 'utf8');
   
+  // sdlcNamecodegeneration:
+  // example_instructionscodegeneration:
+
   let agentYamlObj = yaml.load(agentYaml);
-  agentYamlObj.name = projectName;
+  agentYamlObj.title = projectName;
   agentYamlObj.description = answers.agentDescription;
-  agentYamlObj.agent_routing = {
+  agentYamlObj.tags = answers.tags;
+  agentYamlObj.unique_id = answers.unique_id;
+  agentYamlObj.metadata.agent_routing = {
     worksonblankcode: answers.worksonblankcode,
     worksonexistingcode: answers.worksonexistingcode,
     softwaredevprocessmanaged: answers.softwaredevprocessmanaged,
     supportedlanguages: answers.supportedlanguages,
     supportedframeworks: answers.supportedframeworks,
   };
-  agentYamlObj.sdlc_steps_managed = metadata.sdlc_steps_managed.map(step => ({
-    name: step.name,
-    example_instructions: answers[`${step.name}Instructions`],
+  agentYamlObj.metadata.sdlc_steps_managed = metadata.sdlc_steps_managed.map(step => ({
+    name: answers[`sdlcName${step.name}`],
+    example_instructions: answers[`example_instructions${step.name}`],
   }));
-  agentYamlObj.llm_role = metadata.llm_role.map(role => ({
+  agentYamlObj.metadata.llm_role = metadata.llm_role.map(role => ({
     name: role.name,
     description: role.description,
     modelorder: answers[role.name],
   }));
   agentYamlObj.actions = metadata.actions.map(action => ({
-    name: action.name,
-    description: action.description,
-    detailDescription: action.detailDescription,
-    actionPrompt: answers[`${action.name}ActionPrompt`],
+    name: answers[`name${action.name}`],
+    description: answers[`description${action.name}`],
+    detailDescription: answers[`detailDescription${action.name}`],
+    actionPrompt: answers[`actionPrompt${action.name}`],
   }));
   
+  console.log(agentYamlObj)
+  return
   agentYaml = yaml.dump(agentYamlObj);
+
   fs.writeFileSync(agentYamlPath, agentYaml, 'utf8');
 
   const projectPackageJson = require(path.join(projectDir, 'package.json'));

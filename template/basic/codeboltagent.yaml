@@ -1,5 +1,5 @@
-title: codeboltagent
-unique_id: codeboltagent
+title: 
+unique_id: 
 initial_message: Hello! I'm your advanced AI developer. How can I assist you today?
 description: Agent For Codebolt.
 tags:
@@ -10,82 +10,45 @@ avatarSrc:  https://placehold.co/200x200
 avatarFallback: CE
 metadata:
   agent_routing:
-    worksonblankcode: true
-    worksonexistingcode: true
+    worksonblankcode: false
+    worksonexistingcode: false
     softwaredevprocessmanaged:
-      - projectplanning
-      - codegeneration
-      - codetesting
-      - codeoptimization
     supportedlanguages:
-      - all
-      - javascript
-      - typescript
-      - python
-      - go
-      - ruby
     supportedframeworks:
-      - all
-      - nextjs
-      - reactjs
-      - nodejs
-      - express
-      - django
+      
   defaultagentllm:
     strict: true
     modelorder:
-      - ollama2
+    - ollama2
+      
   sdlc_steps_managed: 
-    - name: codegeneration
+    - name: 
       example_instructions: 
-        - "Generate a new React component"
-        - "Create a new API endpoint"
-    - name: deployment
+       
+    - name: 
       example_instructions: 
-        - "deploy this file to cloudflare"
-        - "deploy this file to firebase"    
+           
   llm_role:
-    - name: documentationllm
-      description: LLM to be used for advanced Documentation. Please select a model that excels in documentation tasks.
+    - name: 
+      description: 
+      strict: false
+      modelorder:
+        
+    - name: 
+      description: 
       strict: true
       modelorder:
-        - gpt-4-turbo
-        - gpt-3.5-turbo
-        - mistral7b.perplexity
-        - mistral7b.any
-        - llama2-70b
-        - llama2-15b
-        - group.documentationmodels
-    - name: testingllm
-      description: LLM to be used for advanced Testing. Please select a model that excels in testing tasks.
+        
+    - name: 
+      description: 
       strict: true
       modelorder:
-        - gpt-4-turbo
-        - gpt-3.5-turbo
-        - mistral7b.perplexity
-        - mistral7b.any
-        - llama2-70b
-        - llama2-15b
-        - group.testingmodels
-    - name: actionllm
-      description: LLM to be used for executing advanced actions.
-      strict: true
-      modelorder:
-        - gpt-4-turbo
-        - gpt-3.5-turbo
-        - mistral7b.perplexity
-        - mistral7b.any
-        - llama2-70b
-        - llama2-15b
-        - group.actionmodels
+        
 actions:
-  - name: "Execute"
-    description: "Executes the given task."
-    detailDescription: "more detailed description"
-    actionPrompt: "Please run this code" 
-  - name: "Debug"
-    description: "Debugs the code."
-    actionPrompt: "Please debug this code"
+  - name: 
+    description: 
+    detailDescription: 
+    actionPrompt: 
 id: 9b3204ef-3e56-42a3-99c4-12e30f5f7082
 zipFilePath: https://storage.googleapis.com/codeboltai.appspot.com/agents/xyz123.zip
 slug: 9b3204ef3e5642a399c412e30f5f7082
