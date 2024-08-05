@@ -90,91 +90,88 @@ if (parsedYaml.metadata.agent_routing) {
   });
 
   prompts.push({
-    type: 'list',
+    type: 'checkbox',
     name: 'supportedlanguages',
     message: 'Supported Languages:',
     choices: parsedYaml.metadata.agent_routing.supportedlanguages,
   });
 
   prompts.push({
-    type: 'list',
+    type: 'checkbox',
     name: 'supportedframeworks',
     message: 'Supported Frameworks:',
     choices: parsedYaml.metadata.agent_routing.supportedframeworks,
   });
 }
 
-if (parsedYaml.metadata.llm_role) {
-  parsedYaml.metadata.llm_role.forEach(role => {
-    prompts.push({
-      type: 'list',
-      name: role.name,
-      message: role.description,
-      choices: role.modelorder,
+
+async function askForActions(actionsData) {
+  let addMoreActions = true;
+  while (addMoreActions) {
+    const actionPrompt = [
+      {
+        type: 'input',
+        name: 'actionName',
+        message: 'Please Enter Action Name:',
+        default: parsedYaml.actions[0].name
+      },
+      {
+        type: 'input',
+        name: 'description',
+        message: 'Please Enter Action Description:',
+        default: parsedYaml.actions[0].description
+      },
+      {
+        type: 'input',
+        name: 'detailDescription',
+        message: 'Please Enter Detail Description (optional):',
+        default: parsedYaml.actions[0].detailDescription,
+      },
+      {
+        type: 'input',
+        name: 'actionPrompt',
+        message: 'Please Enter Action Prompt (optional):',
+        default: parsedYaml.actions[0].actionPrompt,
+      },
+      {
+        type: 'confirm',
+        name: 'addMoreActions',
+        message: 'Do you want to add more actions?',
+        default: false,
+      }
+    ];
+
+    const actionRes = await inquirer.prompt(actionPrompt);
+    actionsData.push({
+      name: actionRes.actionactionDescriptionName,
+      description: actionRes.description,
+      detailDescription: actionRes.detailDescription,
+      actionPrompt: actionRes.actionPrompt,
     });
-  });
+    addMoreActions = actionRes.addMoreActions;
+  }
+  return actionsData;
 }
 
-// async function askForActions(res) {
-//   let addMoreActions = true;
-//   while (addMoreActions) {
-//     const actionPrompt = [
-//       {
-//         type: 'input',
-//         name: 'actionName',
-//         message: 'Please Enter Action Name:',
-//       },
-//       {
-//         type: 'input',
-//         name: 'actionDescription',
-//         message: 'Please Enter Action Description:',
-//       },
-//       {
-//         type: 'input',
-//         name: 'detailDescription',
-//         message: 'Please Enter Detail Description (optional):',
-//       },
-//       {
-//         type: 'input',
-//         name: 'actionPrompt',
-//         message: 'Please Enter Action Prompt (optional):',
-//       },
-//       {
-//         type: 'confirm',
-//         name: 'addMoreActions',
-//         message: 'Do you want to add more actions?',
-//         default: false,
-//       }
-//     ];
+async function askForInstructions(sdlc) {
 
-//     const actionRes = await inquirer.prompt(actionPrompt);
-//     res.push({
-//       name: actionRes.actionName,
-//       description: actionRes.actionDescription,
-//       detailDescription: actionRes.detailDescription,
-//       actionPrompt: actionRes.actionPrompt,
-//     });
-//     addMoreActions = actionRes.addMoreActions;
-//   }
-//   return res;
-// }
-
-async function askForInstructions() {
- let res= []
   let addMoreInstructions = true;
   while (addMoreInstructions) {
     const additionalPrompt = [
       {
-        type: 'input',
-        name: 'InstructionName',
+        type: 'list',
+        name: 'name',
         message: 'Please Enter SDLC Step Name:',
-        default: parsedYaml.metadata.sdlc_steps_managed.name,
+        choices: parsedYaml.metadata.sdlc_steps_managed.map(item => item.name),
       },
       {
-        type: 'input',
-        name: 'InstructionDescription',
+        type: 'checkbox',
+        name: 'example_instructions',
         message: 'Please Enter Instruction Description:',
-        default:  'Generate a new React component'
+        choices: (answers) => {
+          const selectedStep = parsedYaml.metadata.sdlc_steps_managed.find(item => item.name === answers.name);
+          return selectedStep ? selectedStep.example_instructions : [];
+        }
       },
       {
         type: 'confirm',
@@ -185,24 +182,32 @@ async function askForInstructions() {
     ];
 
     const additionalRes = await inquirer.prompt(additionalPrompt);
-    res[`sdlcName${additionalRes.InstructionName}`] = additionalRes.InstructionName;
-    res[`sdlcDescription${additionalRes.InstructionName}`] = additionalRes.InstructionDescription;
+
+    sdlc.push({
+      name: additionalRes.name,
+      example_instructions: additionalRes.example_instructions,
+    });
     addMoreInstructions = additionalRes.addMoreInstructions;
   }
-  return res;
+  
+  return sdlc;
 }
 
 inquirer.prompt(prompts).then(async answers => {
-  let res = [];
-  let instructions = await askForInstructions(res)
-  console.log(instructions)
+  let sdlc = [];
+  let actionsData = [];
+  let sdlcInstruction  = await askForInstructions(sdlc)
+  let actions = await askForActions(actionsData)
+
   projectName = answers.projectName.trim();
   const installPath = answers.installPath.trim() === '.' ? process.cwd() : path.resolve(process.cwd(), answers.installPath.trim());
   const selectedTemplate = answers.template;
+  answers.sdlc_steps_managed = sdlcInstruction
+  answers.actions = actions
   createProject(projectName, installPath, selectedTemplate, answers);
 });
 
-function createProject(projectName, installPath, selectedTemplate, answers) {
+function createProject(projectName, installPath, selectedTemplate, answers ) {
   
   const projectDir = path.resolve(installPath);
   fs.mkdirSync(projectDir, { recursive: true });
@@ -227,31 +232,21 @@ function createProject(projectName, installPath, selectedTemplate, answers) {
   agentYamlObj.metadata.agent_routing = {
     worksonblankcode: answers.worksonblankcode,
     worksonexistingcode: answers.worksonexistingcode,
-    softwaredevprocessmanaged: answers.softwaredevprocessmanaged,
     supportedlanguages: answers.supportedlanguages,
     supportedframeworks: answers.supportedframeworks,
   };
 
-  agentYamlObj.metadata.sdlc_steps_managed = metadata.sdlc_steps_managed.map(step => ({
-    name: answers[`sdlcName${step.name}`],
-    example_instructions: answers[`example_instructions${step.name}`],
-  }));
-
-  agentYamlObj.metadata.llm_role = metadata.llm_role.map(role => ({
-    name: role.name,
-    description: role.description,
-    modelorder: answers[role.name],
+  agentYamlObj.metadata.sdlc_steps_managed = answers.sdlc_steps_managed.map(step => ({
+    name: step.name,
+    example_instructions: step.example_instructions,
   }));
 
   agentYamlObj.actions = parsedYaml.actions.map(action => ({
-    name: answers[`name${action.name}`],
-    description: answers[`description${action.name}`],
-    detailDescription: answers[`detailDescription${action.name}`],
-    actionPrompt: answers[`actionPrompt${action.name}`],
+    name: action.name,
+    description: action.description,
+    detailDescription: action.detailDescription,
+    actionPrompt: action.actionPrompt,
   }));
-
-  console.log(agentYamlObj)
-  return
   
   agentYaml = yaml.dump(agentYamlObj);
 

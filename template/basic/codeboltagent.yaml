@@ -34,7 +34,11 @@ metadata:
     - name: codegeneration
       example_instructions: 
         - "Generate a new React component"
-        - "Create a new API endpoint" 
+        - "Create a new API endpoint"
+    - name: deployment
+      example_instructions: 
+        - "deploy this file to cloudflare"
+        - "deploy this file to firebase"    
   llm_role:
     - name: documentationllm
       description: LLM to be used for advanced Documentation. Please select a model that excels in documentation tasks.
@@ -74,9 +78,6 @@ actions:
     description: "Executes the given task."
     detailDescription: "more detailed description"
     actionPrompt: "Please run this code" 
-  - name: "Debug"
-    description: "Debugs the code."
-    actionPrompt: "Please debug this code"
 id: 9b3204ef-3e56-42a3-99c4-12e30f5f7082
 zipFilePath: https://storage.googleapis.com/codeboltai.appspot.com/agents/xyz123.zip
 slug: 9b3204ef3e5642a399c412e30f5f7082
