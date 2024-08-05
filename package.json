@@ -2,7 +2,7 @@
   "name": "create-codebolt-agent",
   "version": "1.0.5",
   "bin": {
-    "create-codebolt-agent": "./index.js"
+    "create-codebolt-agent": "index.js"
   },
   "dependencies": {
     "commander": "^12.1.0",
