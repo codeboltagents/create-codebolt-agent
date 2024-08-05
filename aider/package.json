@@ -1,0 +1,14 @@
+{
+  "name": "codebolt-agent",
+  "version": "1.0.0",
+  "description": "This is a codebolt agent.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@codebolt/codeboltjs": "^1.1.37"
+  }
+}
