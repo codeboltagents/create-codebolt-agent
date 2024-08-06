@@ -21,7 +21,7 @@ projectName = options.name || process.argv[2];
 const templateDir = path.resolve(__dirname, 'template');
 const templates = fs.readdirSync(templateDir).filter(file => fs.statSync(path.join(templateDir, file)).isDirectory());
 
-const agentymlpath = path.join('./template/basic', 'codeboltagent.yaml');
+const agentymlpath = path.join(__dirname, 'template/basic', 'codeboltagent.yaml');
   let agentYamlData = fs.readFileSync(agentymlpath, 'utf8');
 
   // Parse the YAML file
