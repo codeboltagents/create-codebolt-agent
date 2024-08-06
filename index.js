@@ -8,7 +8,7 @@ const path = require('path');
 const { Command } = require('commander');
 const inquirer = require('inquirer');
 const yaml = require('js-yaml');
-import { v4 as uuidv4 } from "uuid";
+const { v4: uuidv4 } = require('uuid');
 const program = new Command();
 program.option('-n, --name <name>', 'name of the project');
 program.parse(process.argv);
