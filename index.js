@@ -8,7 +8,7 @@ const path = require('path');
 const { Command } = require('commander');
 const inquirer = require('inquirer');
 const yaml = require('js-yaml');
-
+import { v4 as uuidv4 } from "uuid";
 const program = new Command();
 program.option('-n, --name <name>', 'name of the project');
 program.parse(process.argv);
@@ -21,18 +21,12 @@ projectName = options.name || process.argv[2];
 const templateDir = path.resolve(__dirname, 'template');
 const templates = fs.readdirSync(templateDir).filter(file => fs.statSync(path.join(templateDir, file)).isDirectory());
 
-const agentymlpath = path.join('./template/basic', 'codeboltagent.yaml');
+  const agentymlpath = path.join('template/basic', 'codeboltagent.yaml');
   let agentYamlData = fs.readFileSync(agentymlpath, 'utf8');
 
   // Parse the YAML file
   const parsedYaml = yaml.load(agentYamlData);
 
-
-let agent_routing = []
-let defaultagentllm = []
-let sdlc_steps_managed = []
-let llm_role = []
-let actions = []
 const currentPath = process.cwd(); // Gets the current working directory
 
 const prompts = [
@@ -41,11 +35,6 @@ const prompts = [
     name: 'projectName',
     message: 'Please enter the name of your application:',
     default: projectName,
-  },
-  {
-    type: 'input',
-    name: 'unique_id',
-    message: 'Please enter the name of your Unique_id:',
   },
   {
     type: 'input',
@@ -66,7 +55,7 @@ const prompts = [
     default: 'My Codebolt Agent',
   },
   {
-    type: 'list',
+    type: 'checkbox',
     name: 'tags',
     message: 'Please select tags:',
     choices: parsedYaml.tags,
@@ -165,13 +154,10 @@ async function askForInstructions(sdlc) {
         choices: parsedYaml.metadata.sdlc_steps_managed.map(item => item.name),
       },
       {
-        type: 'checkbox',
+        type: 'input',
         name: 'example_instructions',
         message: 'Please Enter Instruction Description:',
-        choices: (answers) => {
-          const selectedStep = parsedYaml.metadata.sdlc_steps_managed.find(item => item.name === answers.name);
-          return selectedStep ? selectedStep.example_instructions : [];
-        }
+        default: 'Generate a new React component'
       },
       {
         type: 'confirm',
@@ -227,8 +213,10 @@ function createProject(projectName, installPath, selectedTemplate, answers ) {
   let agentYamlObj = yaml.load(agentYaml);
   agentYamlObj.title = projectName;
   agentYamlObj.description = answers.agentDescription;
+
   agentYamlObj.tags = answers.tags;
-  agentYamlObj.unique_id = answers.unique_id;
+
+  agentYamlObj.unique_id = uuidv4();
   agentYamlObj.metadata.agent_routing = {
     worksonblankcode: answers.worksonblankcode,
     worksonexistingcode: answers.worksonexistingcode,

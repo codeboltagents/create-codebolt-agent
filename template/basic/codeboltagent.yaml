@@ -4,6 +4,8 @@ initial_message: Hello! I'm your advanced AI developer. How can I assist you tod
 description: Agent For Codebolt.
 tags:
   - basic-agent
+  - codebolt-pilot
+  - codebolt-devika
 longDescription: |
     A basic agent designed for the Codebolt platform, offering a range of functionalities to enhance interaction with the platform.
 avatarSrc:  https://placehold.co/200x200
@@ -78,7 +80,4 @@ actions:
     description: "Executes the given task."
     detailDescription: "more detailed description"
     actionPrompt: "Please run this code" 
-id: 9b3204ef-3e56-42a3-99c4-12e30f5f7082
-zipFilePath: https://storage.googleapis.com/codeboltai.appspot.com/agents/xyz123.zip
-slug: 9b3204ef3e5642a399c412e30f5f7082
-createdByUser: johnsmith
+createdByUser: codebolt Admin
