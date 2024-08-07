@@ -56,10 +56,10 @@ const prompts = [
     default: 'My Codebolt Agent',
   },
   {
-    type: 'checkbox',
+    type: 'input',
     name: 'tags',
-    message: 'Please select tags:',
-    choices: parsedYaml.tags,
+    message: 'Please Enter agent tags by comma seperated:',
+    default: 'test',
   },
 ];
 
@@ -144,41 +144,68 @@ async function askForActions(actionsData) {
 }
 
 async function askForInstructions(sdlc) {
-
   let addMoreInstructions = true;
+
   while (addMoreInstructions) {
-    const additionalPrompt = [
+    // Prompt for SDLC step name
+    const stepPrompt = [
       {
         type: 'list',
         name: 'name',
         message: 'Please Enter SDLC Step Name:',
         choices: parsedYaml.metadata.sdlc_steps_managed.map(item => item.name),
-      },
-      {
-        type: 'input',
-        name: 'example_instructions',
-        message: 'Please Enter Instruction Description:',
-        default: 'Generate a new React component'
-      },
+      }
+    ];
+
+    const stepRes = await inquirer.prompt(stepPrompt);
+
+    let instructions = [];
+
+    // Prompt for multiple instructions
+    let addMoreExamples = true;
+    while (addMoreExamples) {
+      const instructionPrompt = [
+        {
+          type: 'input',
+          name: 'example_instruction',
+          message: 'Please Enter Instruction Description:',
+          default: 'Generate a new React component',
+        },
+        {
+          type: 'confirm',
+          name: 'addMoreExamples',
+          message: 'Do you want to add another instruction?',
+          default: true,
+        }
+      ];
+
+      const instructionRes = await inquirer.prompt(instructionPrompt);
+      
+      instructions.push(instructionRes.example_instruction);
+      addMoreExamples = instructionRes.addMoreExamples;
+    }
+
+    sdlc.push({
+      name: stepRes.name,
+      example_instructions: instructions,
+    });
+
+    const addMoreStepsPrompt = [
       {
         type: 'confirm',
         name: 'addMoreInstructions',
-        message: 'Do you want to add more instructions?',
+        message: 'Do you want to add more SDLC steps?',
         default: false,
       }
     ];
 
-    const additionalRes = await inquirer.prompt(additionalPrompt);
-
-    sdlc.push({
-      name: additionalRes.name,
-      example_instructions: additionalRes.example_instructions,
-    });
-    addMoreInstructions = additionalRes.addMoreInstructions;
+    const addMoreStepsRes = await inquirer.prompt(addMoreStepsPrompt);
+    addMoreInstructions = addMoreStepsRes.addMoreInstructions;
   }
-  
+
   return sdlc;
 }
+
 
 inquirer.prompt(prompts).then(async answers => {
   let sdlc = [];
@@ -214,9 +241,7 @@ function createProject(projectName, installPath, selectedTemplate, answers ) {
   let agentYamlObj = yaml.load(agentYaml);
   agentYamlObj.title = projectName;
   agentYamlObj.description = answers.agentDescription;
-
-  agentYamlObj.tags = answers.tags;
-
+  agentYamlObj.tags = answers.tags.split(',').map(tag => tag.trim());
   agentYamlObj.unique_id = uuidv4();
   agentYamlObj.metadata.agent_routing = {
     worksonblankcode: answers.worksonblankcode,
