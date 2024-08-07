@@ -39,6 +39,12 @@ const prompts = [
   },
   {
     type: 'input',
+    name: 'unique_id',
+    message: 'Please enter the unique_id:',
+    default: uuidv4(),
+  },
+  {
+    type: 'input',
     name: 'installPath',
     message: 'Please enter the path to install the application:',
     default: (answers) => path.join(currentPath, answers.projectName || 'defaultProjectName'),
@@ -242,7 +248,7 @@ function createProject(projectName, installPath, selectedTemplate, answers ) {
   agentYamlObj.title = projectName;
   agentYamlObj.description = answers.agentDescription;
   agentYamlObj.tags = answers.tags.split(',').map(tag => tag.trim());
-  agentYamlObj.unique_id = uuidv4();
+  agentYamlObj.unique_id = answers.unique_id
   agentYamlObj.metadata.agent_routing = {
     worksonblankcode: answers.worksonblankcode,
     worksonexistingcode: answers.worksonexistingcode,
