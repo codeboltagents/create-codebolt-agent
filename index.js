@@ -9,9 +9,11 @@ const { Command } = require('commander');
 const inquirer = require('inquirer');
 const yaml = require('js-yaml');
 const { v4: uuidv4 } = require('uuid');
+const chalk = require('chalk');
 const program = new Command();
 program.option('-n, --name <name>', 'name of the project');
 program.parse(process.argv);
+
 
 const options = program.opts();
 let projectName = '';
@@ -72,41 +74,57 @@ const prompts = [
     message: 'Please Enter agent tags by comma separated:',
     default: 'test',
   },
-];
-
-// Add metadata prompts
-if (parsedYaml.metadata.agent_routing) {
-  prompts.push({
+  {
     type: 'confirm',
     name: 'worksonblankcode',
     message: 'Works on blank code:',
     default: parsedYaml.metadata.agent_routing.worksonblankcode,
-  });
-
-  prompts.push({
+  },
+  {
     type: 'confirm',
     name: 'worksonexistingcode',
     message: 'Works on existing code:',
     default: parsedYaml.metadata.agent_routing.worksonexistingcode,
-  });
-
-  prompts.push({
+  },
+  {
     type: 'checkbox',
     name: 'supportedlanguages',
     message: 'Supported Languages:',
     choices: parsedYaml.metadata.agent_routing.supportedlanguages,
-  });
-
-  prompts.push({
+    validate: function (input) {
+      if (input.length === 0) {
+        return 'You must select at least one language';
+      }
+      return true;
+    }
+  },
+  {
     type: 'checkbox',
     name: 'supportedframeworks',
     message: 'Supported Frameworks:',
     choices: parsedYaml.metadata.agent_routing.supportedframeworks,
-  });
-}
+    validate: function (input) {
+      if (input.length === 0) {
+        return 'You must select at least one framework';
+      }
+      return true;
+    }
+  },
+];
 
 async function askForActions(actionsData) {
-  let addMoreActions = true;
+  const initialPrompt = [
+    {
+      type: 'confirm',
+      name: 'addActions',
+      message: 'Do you want to add actions?',
+      default: true,
+    }
+  ];
+
+  const initialRes = await inquirer.prompt(initialPrompt);
+  let addMoreActions = initialRes.addActions;
+
   while (addMoreActions) {
     const actionPrompt = [
       {
@@ -143,7 +161,7 @@ async function askForActions(actionsData) {
 
     const actionRes = await inquirer.prompt(actionPrompt);
     actionsData.push({
-      name: actionRes.actionactionDescriptionName,
+      name: actionRes.actionName,
       description: actionRes.description,
       detailDescription: actionRes.detailDescription,
       actionPrompt: actionRes.actionPrompt,
@@ -185,7 +203,7 @@ async function askForInstructions(sdlc) {
           type: 'confirm',
           name: 'addMoreExamples',
           message: 'Do you want to add another instruction?',
-          default: true,
+          default: false,
         }
       ];
 
@@ -216,20 +234,36 @@ async function askForInstructions(sdlc) {
   return sdlc;
 }
 
+console.log(chalk.blue(
+"  _____           _      _           _ _    \n"+
+" /  __ \\         | |    | |         | | |   \n"+
+" | /  \\/ ___   __| | ___| |__   ___ | | |_  \n"+
+" | |    / _ \\ / _` |/ _ \\ '_ \\ / _ \\| | __| \n"+
+" | \\__/\\ (_) | (_| |  __/ |_) | (_) | | |_  \n"+
+"  \\____/\\___/ \\__,_|\\___|_.__/ \\___/|_|\\__| \n"));
 
-inquirer.prompt(prompts).then(async answers => {
-  let sdlc = [];
-  let actionsData = [];
-  let sdlcInstruction  = await askForInstructions(sdlc)
-  let actions = await askForActions(actionsData)
 
-  projectName = answers.projectName.trim();
-  const installPath = answers.installPath.trim() === '.' ? process.cwd() : path.resolve(process.cwd(), answers.installPath.trim());
-  const selectedTemplate = answers.template;
-  answers.sdlc_steps_managed = sdlcInstruction
-  answers.actions = actions
-  createProject(projectName, installPath, selectedTemplate, answers);
-});
+
+  
+  inquirer.prompt(prompts).then(async answers => {
+    let sdlc = [];
+    let actionsData = [];
+    console.log(chalk.yellow(`\n------------------------------SDLC Steps-----------------------------------------\n`));
+    console.log(chalk.green("SDLC Steps are the software development steps that your Agent will handle like code generation, deployment, testing etc. \n These are used by Universal Agent Router to route the user request to the correct Agent Invocation.\n Also add sample Instructions that the user should give to invoke that SLDC Step functionality.\n"));
+    let sdlcInstruction  = await askForInstructions(sdlc)
+    console.log(chalk.yellow(`\n------------------------------Action Steps-----------------------------------------\n`));
+    console.log(chalk.green("Actions are the functionality that your Agent provides to the user. These are like functionality shortcuts that the user can invoke using \\ command.\n"));
+    let actions = await askForActions(actionsData)
+
+
+    projectName = answers.projectName.trim();
+    const installPath = answers.installPath.trim() === '.' ? process.cwd() : path.resolve(process.cwd(), answers.installPath.trim());
+    const selectedTemplate = answers.template;
+    answers.sdlc_steps_managed = sdlcInstruction
+    answers.actions = actions
+    createProject(projectName, installPath, selectedTemplate, answers);
+  });
+
 
 function createProject(projectName, installPath, selectedTemplate, answers ) {
   
