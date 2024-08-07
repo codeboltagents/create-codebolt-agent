@@ -24,7 +24,6 @@ const templates = fs.readdirSync(templateDir).filter(file => fs.statSync(path.jo
   const agentymlpath = path.join(__dirname, 'template/basic', 'codeboltagent.yaml');
   let agentYamlData = fs.readFileSync(agentymlpath, 'utf8');
 
- 
   // Parse the YAML file
   const parsedYaml = yaml.load(agentYamlData);
 
