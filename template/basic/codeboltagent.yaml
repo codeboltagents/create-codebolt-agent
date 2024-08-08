@@ -80,4 +80,4 @@ actions:
     description: "Executes the given task."
     detailDescription: "more detailed description"
     actionPrompt: "Please run this code" 
-auther: codebolt
+author: codebolt
