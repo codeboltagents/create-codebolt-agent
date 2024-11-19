@@ -10,6 +10,7 @@ module.exports = {
     filename: 'index.js',
     libraryTarget: 'commonjs2', // Ensures compatibility with Node.js module system
   },
+  
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
