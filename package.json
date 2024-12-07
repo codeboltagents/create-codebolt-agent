@@ -1,6 +1,6 @@
 {
   "name": "create-codebolt-agent",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "bin": {
     "create-codebolt-agent": "index.js"
   },
